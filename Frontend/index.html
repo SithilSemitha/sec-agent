@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Security Agent UI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 30px;
+    }
+    h1 {
+      color: #38bdf8;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      background: #38bdf8;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #020617;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    pre {
+      background: #020617;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🔐 Security Agent</h1>
+
+<p>Ask about IPs, timestamps, or text operations:</p>
+
+<textarea id="question" placeholder="Example:
+- Check IP 8.8.8.8 in VirusTotal
+- Reverse this text: hello
+- What time is it?"></textarea>
+
+<button id="submit">Send</button>
+
+<pre id="output">Waiting for input…</pre>
+
+<script>
+  const API_URL = "<REPLACE WITH YOUR API URL>";
+
+  const button = document.getElementById("submit");
+  const output = document.getElementById("output");
+
+  button.onclick = async () => {
+    const question = document.getElementById("question").value.trim();
+    if (!question) return;
+
+    button.disabled = true;
+    output.textContent = "⏳ Processing...";
+
+    try {
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ question })
+      });
+
+	const data = await response.json();
+
+	// Handle both API Gateway and direct Lambda responses
+	const payload = data.body
+	  ? (typeof data.body === "string" ? JSON.parse(data.body) : data.body)
+	  : data;
+
+	output.textContent = payload.answer || "No response";
+    } catch (err) {
+      output.textContent = "❌ Error: " + err.message;
+    } finally {
+      button.disabled = false;
+    }
+  };
+</script>
+
+</body>
+</html>
