@@ -2,100 +2,221 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Security Agent UI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Agent Pro</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
+    /* Global Styles */
+    :root {
+      --bg-dark: #0f172a;
+      --bg-deep: #020617;
+      --accent: #38bdf8;
+      --text-main: #e5e7eb;
+      --text-dim: #94a3b8;
+      --border: #1e293b;
+    }
+
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+    }
+
+    /* Sidebar Layout */
+    aside {
+      width: 260px;
+      background: var(--bg-deep);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    .logo {
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: var(--accent);
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-item {
+      padding: 10px;
+      border-radius: 6px;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .nav-item:hover {
+      background: var(--border);
+      color: white;
+    }
+
+    /* Main Content Area */
+    main {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    header {
+      padding: 15px 30px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    /* Output Terminal Area */
+    #output-container {
+      flex-grow: 1;
       padding: 30px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
-    h1 {
-      color: #38bdf8;
+
+    .message {
+      max-width: 800px;
+      line-height: 1.6;
     }
+
+    .response-box {
+      background: var(--bg-deep);
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+    }
+
+    /* Input Footer Area */
+    .input-area {
+      padding: 30px;
+      background: linear-gradient(transparent, var(--bg-dark) 20%);
+    }
+
+    .input-container {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+    }
+
     textarea {
       width: 100%;
-      height: 100px;
+      background: transparent;
+      border: none;
+      color: white;
+      resize: none;
+      font-size: 1rem;
       padding: 10px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: none;
-      margin-bottom: 10px;
+      outline: none;
+      min-height: 50px;
     }
+
+    .controls {
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 10px;
+    }
+
     button {
-      padding: 10px 20px;
-      font-size: 14px;
-      background: #38bdf8;
+      padding: 8px 16px;
+      background: var(--accent);
+      color: var(--bg-deep);
       border: none;
       border-radius: 6px;
+      font-weight: 600;
       cursor: pointer;
-      color: #020617;
+      transition: 0.2s;
     }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
     button:disabled {
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed;
-    }
-    pre {
-      background: #020617;
-      padding: 15px;
-      border-radius: 6px;
-      margin-top: 20px;
-      white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
 
-<h1>🔐 Security Agent</h1>
+  <aside>
+    <div class="logo"><span>🔐</span> SecAgent 1.0</div>
+    <div class="nav-item">History</div>
+    <div class="nav-item">IP Lookup</div>
+    <div class="nav-item">Threat Intel</div>
+    <div style="margin-top: auto;" class="nav-item">Settings</div>
+  </aside>
 
-<p>Ask about IPs, timestamps, or text operations:</p>
+  <main>
+    <header>Network Analysis & Intelligence</header>
 
-<textarea id="question" placeholder="Example:
-- Check IP 8.8.8.8 in VirusTotal
-- Reverse this text: hello
-- What time is it?"></textarea>
+    <div id="output-container">
+      <div class="message">
+        <div style="color: var(--accent); margin-bottom: 5px;">Agent System</div>
+        <div id="output" class="response-box">Ready for instructions. Ask me about an IP or request a text operation.</div>
+      </div>
+    </div>
 
-<button id="submit">Send</button>
+    <div class="input-area">
+      <div class="input-container">
+        <textarea id="question" placeholder="Ask a question..."></textarea>
+        <div class="controls">
+          <button id="submit">Run Command</button>
+        </div>
+      </div>
+    </div>
+  </main>
 
-<pre id="output">Waiting for input…</pre>
+  <script>
+    const API_URL = "<REPLACE WITH YOUR API URL>";
+    const button = document.getElementById("submit");
+    const output = document.getElementById("output");
+    const questionInput = document.getElementById("question");
 
-<script>
-  const API_URL = "<REPLACE WITH YOUR API URL>";
+    button.onclick = async () => {
+      const question = questionInput.value.trim();
+      if (!question) return;
 
-  const button = document.getElementById("submit");
-  const output = document.getElementById("output");
+      button.disabled = true;
+      output.textContent = "⏳ Analyzing and fetching intelligence...";
 
-  button.onclick = async () => {
-    const question = document.getElementById("question").value.trim();
-    if (!question) return;
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question })
+        });
 
-    button.disabled = true;
-    output.textContent = "⏳ Processing...";
+        const data = await response.json();
+        const payload = data.body
+          ? (typeof data.body === "string" ? JSON.parse(data.body) : data.body)
+          : data;
 
-    try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ question })
-      });
-
-	const data = await response.json();
-
-	// Handle both API Gateway and direct Lambda responses
-	const payload = data.body
-	  ? (typeof data.body === "string" ? JSON.parse(data.body) : data.body)
-	  : data;
-
-	output.textContent = payload.answer || "No response";
-    } catch (err) {
-      output.textContent = "❌ Error: " + err.message;
-    } finally {
-      button.disabled = false;
-    }
-  };
-</script>
-
+        output.textContent = payload.answer || "No response";
+      } catch (err) {
+        output.textContent = "❌ Error: " + err.message;
+      } finally {
+        button.disabled = false;
+        questionInput.value = ""; // Clear input after send
+      }
+    };
+  </script>
 </body>
 </html>
